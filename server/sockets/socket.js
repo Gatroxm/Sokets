@@ -1,5 +1,7 @@
 const { io } = require('../server');
+const { TiketControl } = require('../sockets/classes/tiket-control');
 
+const tiketControl = new TiketControl();
 
 io.on('connection', (client) => {
 
