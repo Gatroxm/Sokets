@@ -4,41 +4,28 @@ const { TiketControl } = require('../sockets/classes/tiket-control');
 const tiketControl = new TiketControl();
 
 io.on('connection', (client) => {
-
-    console.log('Usuario conectado');
-
-    client.emit('enviarMensaje', {
-        usuario: 'Administrador',
-        mensaje: 'Bienvenido a esta aplicación'
+    client.on('siguienteTicket', (data, callback) => {
+        let ticketNuevo = tiketControl.siguienteTiket();
+        callback(ticketNuevo)
     });
 
+    let ultimoTicket = {
+        ticket: tiketControl.ultimoTicket(),
+        ultimos4: tiketControl.ultimosCuatro()
+    }
+    client.emit('ticketActual',ultimoTicket );
 
+    client.on('atenderTicket', (data, callback) => {
+         if ( !data.escritorio ) {
+             callback({
+                 err: true,
+                 mensaje: "EL escritorio es necesario"
+             });
+         }
+         let atenderTicket = tiketControl.atenderTicket(data.escritorio);
+         callback(atenderTicket);
 
-    client.on('disconnect', () => {
-        console.log('Usuario desconectado');
-    });
+         client.broadcast.emit('ultimos4', ultimoTicket)
 
-    // Escuchar el cliente
-    client.on('enviarMensaje', (data, callback) => {
-
-        console.log(data);
-
-        client.broadcast.emit('enviarMensaje', data);
-
-
-        // if (mensaje.usuario) {
-        //     callback({
-        //         resp: 'TODO SALIO BIEN!'
-        //     });
-
-        // } else {
-        //     callback({
-        //         resp: 'TODO SALIO MAL!!!!!!!!'
-        //     });
-        // }
-
-
-
-    });
-
+    })
 });
